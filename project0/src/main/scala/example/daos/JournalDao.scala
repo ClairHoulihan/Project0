@@ -4,6 +4,7 @@ import example.model.Journal
 import example.util.ConnectionUtil
 import scala.util.Using
 import scala.collection.mutable.ArrayBuffer
+import java.rmi.UnexpectedException
 
 /** A Journal Data Access Object.  JournalDao has CRUD methods for Journals
   *
@@ -63,6 +64,75 @@ object JournalDao {
       }
       journalsWithName.toList
     }.get
+  }
+
+  def searchByPage(condition: String): Seq[Journal] = {
+    val conn = ConnectionUtil.getConnection()
+    var tokens = condition.split(" ")
+    if(tokens(0) == ">") {
+      Using.Manager { use =>
+        val stmt = use(conn.prepareStatement("SELECT * FROM journal WHERE pages > ?"))
+        stmt.setInt(1, tokens(1).toInt)
+        stmt.execute()
+        val rs = use(stmt.getResultSet())
+        val journalsWithName : ArrayBuffer[Journal] = ArrayBuffer()
+        while (rs.next()) {
+          journalsWithName.addOne(Journal.fromResultSet(rs))
+        }
+        journalsWithName.toList
+      }.get
+    } else if(tokens(0) == "<") {
+      Using.Manager { use =>
+        val stmt = use(conn.prepareStatement("SELECT * FROM journal WHERE pages < ?"))
+        stmt.setInt(1, tokens(1).toInt)
+        stmt.execute()
+        val rs = use(stmt.getResultSet())
+        val journalsWithName : ArrayBuffer[Journal] = ArrayBuffer()
+        while (rs.next()) {
+          journalsWithName.addOne(Journal.fromResultSet(rs))
+        }
+        journalsWithName.toList
+      }.get
+    } else if(tokens(0) == "=") {
+      Using.Manager { use =>
+        val stmt = use(conn.prepareStatement("SELECT * FROM journal WHERE pages = ?"))
+        stmt.setInt(1, tokens(1).toInt)
+        stmt.execute()
+        val rs = use(stmt.getResultSet())
+        val journalsWithName : ArrayBuffer[Journal] = ArrayBuffer()
+        while (rs.next()) {
+          journalsWithName.addOne(Journal.fromResultSet(rs))
+        }
+        journalsWithName.toList
+      }.get
+    } else if(tokens(0) == ">=") {
+      Using.Manager { use =>
+        val stmt = use(conn.prepareStatement("SELECT * FROM journal WHERE pages >= ?"))
+        stmt.setInt(1, tokens(1).toInt)
+        stmt.execute()
+        val rs = use(stmt.getResultSet())
+        val journalsWithName : ArrayBuffer[Journal] = ArrayBuffer()
+        while (rs.next()) {
+          journalsWithName.addOne(Journal.fromResultSet(rs))
+        }
+        journalsWithName.toList
+      }.get
+    } else if(tokens(0) == "<=") {
+      Using.Manager { use =>
+        val stmt = use(conn.prepareStatement("SELECT * FROM journal WHERE pages < ?"))
+        stmt.setInt(1, tokens(1).toInt)
+        stmt.execute()
+        val rs = use(stmt.getResultSet())
+        val journalsWithName : ArrayBuffer[Journal] = ArrayBuffer()
+        while (rs.next()) {
+          journalsWithName.addOne(Journal.fromResultSet(rs))
+        }
+        journalsWithName.toList
+      }.get
+    } else {
+      throw new UnexpectedException("Unexpected Input.")
+    }
+      
   }
 
   def saveNew(journal : Journal) : Boolean = {
