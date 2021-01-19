@@ -50,6 +50,21 @@ object JournalDao {
     }.get
   }
 
+  def searchByDate(dateSearch: String): Seq[Journal] = {
+    val conn = ConnectionUtil.getConnection()
+    Using.Manager { use =>
+      val stmt = use(conn.prepareStatement("SELECT * FROM journal WHERE date_of_creation = ?"))
+      stmt.setString(1, dateSearch)
+      stmt.execute()
+      val rs = use(stmt.getResultSet())
+      val journalsWithName : ArrayBuffer[Journal] = ArrayBuffer()
+      while (rs.next()) {
+        journalsWithName.addOne(Journal.fromResultSet(rs))
+      }
+      journalsWithName.toList
+    }.get
+  }
+
   def saveNew(journal : Journal) : Boolean = {
     val conn = ConnectionUtil.getConnection()
     Using.Manager { use =>

@@ -26,25 +26,12 @@ import java.util.Date
   * 
   */
 object MyJournal extends App {
-    
-/* This is old code for creating a csv file, now the code uses a sql database and will use csv as input
- * to enter into the table.
- *
- *  val csvFile = "./JournalInfo.csv"
- *
- *  if(!Files.exists(Paths.get(csvFile))) {
- *    var writeToCSVFile : java.util.List[String] = ArrayBuffer("Journal Name,Date Of Journal Creation,Number Of Pages,Date Of Latest Page").asJava
- *    Files.createFile(Paths.get(csvFile))
- *    Files.write(Paths.get(csvFile), writeToCSVFile)
- *  }
- *
- */
 
     val commands = "C - Create a new Journal, D - Delete a Journal, U - Update a Journal, " +
       "F - Add journals from csv file, A - Add a page to a Journal, E - Delete a page from a Journal, " +
       "P - Update a page from a Journal, R - Read from a page in a journal, " +
       "N - Return a listing for all journals that currently exist, O - For debugging only, " +
-      "Z - Exit the program"
+      "S - Search by date, Z - Exit the program"
 
     println(commands)
 
@@ -72,6 +59,8 @@ object MyJournal extends App {
               listing()
             } else if(userInput.toUpperCase == "O") {
               debug()
+            } else if(userInput.toUpperCase == "S") {
+              search()
             } else {
               println("Unknown command, please try again.")
             }
@@ -91,9 +80,6 @@ object MyJournal extends App {
       println("Name of the Journal: ")
       var nameOfJournal = scala.io.StdIn.readLine()
 
-      // Check if a directory already exists, if it does, return
-      // Create a directory with the name as the name of the Journal
-
       if(Files.exists(Paths.get("./" + nameOfJournal))) {
         println(s"The journal ${nameOfJournal} exists already.")
         return
@@ -111,8 +97,6 @@ object MyJournal extends App {
       var date = new Date();
       var formatter = new SimpleDateFormat("MM/dd/yyyy")
       var strDate = formatter.format(date)
-
-      // Create entry in the sql server
       
       try {
       if (JournalDao.saveNew(Journal(0, nameOfJournal, 0, strDate))) {
@@ -137,7 +121,6 @@ object MyJournal extends App {
       println("Name of the Journal: ")
       var nameOfJournal = scala.io.StdIn.readLine()
 
-      // Attempt to delete a directory (If the directory is not empty, we will need to delete every file inside it)
       if(!Files.exists(Paths.get("./" + nameOfJournal))) {
         println(s"The journal ${nameOfJournal} does not exist.")
         return
@@ -153,8 +136,6 @@ object MyJournal extends App {
 
       Files.delete(Paths.get("./" + nameOfJournal))
       
-      // delete entry in the sql server
-
       try {
         if (JournalDao.deleteThis(nameOfJournal)) {
         println(s"deleted ${nameOfJournal}.")
@@ -185,18 +166,16 @@ object MyJournal extends App {
         return
       }
 
-      // Change the name of a Journal
       println("New name for the Journal: ")
       var newName = scala.io.StdIn.readLine()
 
       Files.move(Paths.get("./" + nameOfJournal), Paths.get("./" + newName))
 
-      // Make updates to the sql server
       JournalDao.updateName(nameOfJournal, newName)
       
     }
 
-/*
+
 
     /** search
       * 
@@ -205,12 +184,16 @@ object MyJournal extends App {
       */
     def search() : Unit =  {
 
-      // Use regex to search for different patterns
-      // allow for different fields to be searched
+      println("Date to search for (format = MM/dd/yyyy): ")
+      var dateSearch = scala.io.StdIn.readLine()
+
+      var journals = JournalDao.searchByDate(dateSearch)
+
+      journals.foreach( (journ) => { println(s"${journ.journal_name} ${journ.date_of_creation}") } )
 
     }
 
-*/
+
 
     /** addPage
       * 
@@ -227,7 +210,6 @@ object MyJournal extends App {
         return
       }
 
-      // Add a page to a journal
       var stream = Files.newDirectoryStream(Paths.get("./" + nameOfJournal))
       var listStream = stream.iterator().asScala.toList
 
@@ -235,7 +217,6 @@ object MyJournal extends App {
 
       Files.createFile(Paths.get("./" + nameOfJournal + "/" + numOfPages.toString()))
 
-      // Allow user to give input to the journal or use an existing file to put in it.
       println("Would you like to write to the file [Y/n]?")
       var yesOrNo = scala.io.StdIn.readLine()
 
@@ -266,8 +247,6 @@ object MyJournal extends App {
       } else {
         println("Unexpected input, returning to the main menu.")
       }
-
-      // Possibly update the sql server with the number of pages
 
       stream = Files.newDirectoryStream(Paths.get("./" + nameOfJournal))
       listStream = stream.iterator().asScala.toList
@@ -304,10 +283,8 @@ object MyJournal extends App {
       var stream = Files.newDirectoryStream(Paths.get("./" + nameOfJournal))
       var listStream = stream.iterator().asScala.toList
       var numOfPages = listStream.length
-      // Delete a page from a journal
       Files.delete(Paths.get("./" + nameOfJournal + "/" + removePage))
       
-      // Update the names of the other files (subtract 1 from each page greater than the page the user is deleting)
       for (pages <- listStream) {
 
         val regexPat = ("""(.*)(\d)""".r)
@@ -315,7 +292,6 @@ object MyJournal extends App {
         pages.toString() match {
           case regexPat(notMatching, matching) => intPages = matching
         }
-        // var intPages = pages.toString()
         if(intPages.toInt > removePage.toInt) {
           var newName = (intPages.toInt - 1)
           Files.move(Paths.get("./" + nameOfJournal + "/" + intPages), 
@@ -324,7 +300,6 @@ object MyJournal extends App {
             
       }
 
-      // Possible update the sql server with the number of pages
       stream = Files.newDirectoryStream(Paths.get("./" + nameOfJournal))
       listStream = stream.iterator().asScala.toList
 
@@ -343,7 +318,6 @@ object MyJournal extends App {
       */
     def updatePage() : Unit = {
 
-      // Update a page from a journal
       println("Name of Journal: ")
       var nameOfJournal = scala.io.StdIn.readLine()
 
@@ -360,7 +334,6 @@ object MyJournal extends App {
         return
       }
 
-      // Add a page to a journal
       var stream = Files.newDirectoryStream(Paths.get("./" + nameOfJournal))
       var listStream = stream.iterator().asScala.toList
 
