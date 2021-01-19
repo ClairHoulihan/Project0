@@ -2,7 +2,7 @@ package example.model
 
 import java.sql.ResultSet
 
-case class Journal(journalId : Int, journal_name : String, pages : Int) {
+case class Journal(journalId : Int, journal_name : String, pages : Int, date_of_creation : String) {
 
 }
 
@@ -17,7 +17,8 @@ object Journal {
     apply(
       rs.getInt("journal_id"),
       rs.getString("journal_name"),
-      rs.getInt("pages")
+      rs.getInt("pages"),
+      rs.getString("date_of_creation")
     )
   }
 }

@@ -17,6 +17,7 @@ import java.util.Calendar
 import scala.collection.mutable.ArrayBuffer
 import java.text.SimpleDateFormat
 import scala.util.control.Breaks._
+import java.util.Date
 
 /** MyJournal
   * 
@@ -42,7 +43,7 @@ object MyJournal extends App {
     val commands = "C - Create a new Journal, D - Delete a Journal, U - Update a Journal, " +
       "F - Add journals from csv file, A - Add a page to a Journal, E - Delete a page from a Journal, " +
       "P - Update a page from a Journal, R - Read from a page in a journal, " +
-      "N - Return a listing for all journals that currently exist, T - (For debugging), " +
+      "N - Return a listing for all journals that currently exist, O - For debugging only, " +
       "Z - Exit the program"
 
     println(commands)
@@ -69,7 +70,7 @@ object MyJournal extends App {
               readPage()
             } else if(userInput.toUpperCase == "N") {
               listing()
-            } else if(userInput.toUpperCase == "T") {
+            } else if(userInput.toUpperCase == "O") {
               debug()
             } else {
               println("Unknown command, please try again.")
@@ -107,10 +108,14 @@ object MyJournal extends App {
         }
       }
 
+      var date = new Date();
+      var formatter = new SimpleDateFormat("MM/dd/yyyy")
+      var strDate = formatter.format(date)
+
       // Create entry in the sql server
       
       try {
-      if (JournalDao.saveNew(Journal(0, nameOfJournal, 0))) {
+      if (JournalDao.saveNew(Journal(0, nameOfJournal, 0, strDate))) {
         println("Added a new journal.")
       } else {
         println("Could not add journal.")
@@ -151,7 +156,7 @@ object MyJournal extends App {
       // delete entry in the sql server
 
       try {
-        if (JournalDao.deleteThis(Journal(0, nameOfJournal, 0))) {
+        if (JournalDao.deleteThis(nameOfJournal)) {
         println(s"deleted ${nameOfJournal}.")
        } else {
         println("Could not delete journal.")
@@ -455,7 +460,7 @@ object MyJournal extends App {
     def listing() : Unit = {
 
       println("Here are the journals that currently exist (in the sql table):");
-      JournalDao.getAll().foreach( (journ) => { println(s"${journ.journal_name}") } )
+      JournalDao.getAll().foreach( (journ) => { println(s"${journ.journal_name} ${journ.date_of_creation}") } )
 
     }
 
@@ -491,7 +496,7 @@ object MyJournal extends App {
              break 
             }
 
-            var newJournal = new Journal(tokens(0).toInt, tokens(1), tokens(2).toInt)
+            var newJournal = new Journal(tokens(0).toInt, tokens(1), tokens(2).toInt, tokens(3))
 
             JournalDao.saveNew(newJournal)
 

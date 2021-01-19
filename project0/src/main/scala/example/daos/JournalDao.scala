@@ -53,9 +53,10 @@ object JournalDao {
   def saveNew(journal : Journal) : Boolean = {
     val conn = ConnectionUtil.getConnection()
     Using.Manager { use =>
-      val stmt = use(conn.prepareStatement("INSERT INTO journal VALUES (DEFAULT, ?, ?);"))
+      val stmt = use(conn.prepareStatement("INSERT INTO journal VALUES (DEFAULT, ?, ?, ?);"))
       stmt.setString(1, journal.journal_name)
       stmt.setInt(2, journal.pages)
+      stmt.setString(3, journal.date_of_creation)
       stmt.execute()
       //check if rows were updated, return true is yes, false if no
       stmt.getUpdateCount() > 0
@@ -63,11 +64,11 @@ object JournalDao {
     // also returns false if a failure occurred
   }
 
-  def deleteThis(journal : Journal) : Boolean = {
+  def deleteThis(journal_name : String) : Boolean = {
     val conn = ConnectionUtil.getConnection()
     Using.Manager { use =>
       val stmt = use(conn.prepareStatement("DELETE FROM journal WHERE journal_name = ?;"))
-      stmt.setString(1, journal.journal_name)
+      stmt.setString(1, journal_name)
       stmt.execute()
       //check if rows were updated, return true is yes, false if no
       stmt.getUpdateCount() > 0
