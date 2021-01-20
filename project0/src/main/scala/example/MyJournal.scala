@@ -239,6 +239,16 @@ object MyJournal extends App {
         println("Enter the exact path of the file you want to copy from.")
         var filePath = scala.io.StdIn.readLine()
 
+        if(!Files.exists(Paths.get(filePath))) {
+        println(s"The file ${filePath} does not exist.")
+        return
+      }
+
+        if(!Files.exists(Paths.get("./" + nameOfJournal))) {
+          println(s"The journal ${nameOfJournal} does not exist.")
+          return
+        }
+
         Files.copy(Paths.get(filePath), Paths.get("./" + nameOfJournal + "/" + numOfPages.toString()), StandardCopyOption.REPLACE_EXISTING)
 
       } else if(yesOrNo.toUpperCase() == "N") {
@@ -360,6 +370,10 @@ object MyJournal extends App {
       println("Enter the exact path of the file you want to copy from.")
       var filePath = scala.io.StdIn.readLine()
 
+      if(!Files.exists(Paths.get(filePath))) {
+        println(s"The file ${filePath} does not exist.")
+        return
+      }
       if (option == "O") {
         Files.copy(Paths.get(filePath), Paths.get("./" + nameOfJournal + "/" + pageToUpdate.toString()), StandardCopyOption.REPLACE_EXISTING)
 
@@ -444,7 +458,7 @@ object MyJournal extends App {
   def listing() : Unit = {
 
     println("Here are the journals that currently exist (in the sql table):");
-    JournalDao.getAll().foreach( (journ) => { println(s"${journ.journal_name} ${journ.date_of_creation}") } )
+    JournalDao.getAll().foreach( (journ) => { println(s"${journ.journal_name} ${journ.pages} ${journ.date_of_creation}") } )
 
   }
 
