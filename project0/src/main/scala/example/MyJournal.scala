@@ -30,8 +30,8 @@ object MyJournal extends App {
   val commands = "C - Create a new Journal, D - Delete a Journal, U - Update a Journal, " +
     "F - Add journals from csv file, A - Add a page to a Journal, E - Delete a page from a Journal, " +
     "P - Update a page from a Journal, R - Read from a page in a journal, " +
-    "N - Return a listing for all journals that currently exist, O - For debugging only, " +
-    "S - Search by date, Z - Exit the program"
+    "N - Return a listing for all journals that currently exist, " +
+    "S - Search by date or page count, Z - Exit the program"
 
   println(commands)
 
@@ -57,8 +57,6 @@ object MyJournal extends App {
       readPage()
     } else if(userInput.toUpperCase == "N") {
       listing()
-    } else if(userInput.toUpperCase == "O") {
-      debug()
     } else if(userInput.toUpperCase == "S") {
       search()
     } else {
@@ -69,7 +67,6 @@ object MyJournal extends App {
     userInput = scala.io.StdIn.readLine()
 
   }
-
 
   /** create
     * 
@@ -208,8 +205,6 @@ object MyJournal extends App {
     }
 
   }
-
-
 
   /** addPage
     * 
@@ -450,17 +445,6 @@ object MyJournal extends App {
 
     println("Here are the journals that currently exist (in the sql table):");
     JournalDao.getAll().foreach( (journ) => { println(s"${journ.journal_name} ${journ.date_of_creation}") } )
-
-  }
-
-  /** debug
-    * 
-    * this function only exists to test new functions in other classes and objects
-    * 
-    */
-  def debug() : Unit = {
-
-    println("Finished debugging.")
 
   }
 
