@@ -462,6 +462,11 @@ object MyJournal extends App {
 
   }
 
+  /** csvRead
+    * 
+    * Import journals from a csv file and skip any that either already exist in the sql server, or are not a directory
+    * 
+    */
   def csvRead() : Unit = {
 
     println("CSV file to read from (Enter the whole path): ")
@@ -477,13 +482,24 @@ object MyJournal extends App {
         
       for(line <- linesToRead) {
         var tokens = line.split(",")
-        var journalExists = JournalDao.get(tokens(1))
+
         breakable {
+          if(!Files.exists(Paths.get("./" + tokens(1)))) {
+           println("$")
+           break
+          }
+
+          var journalExists = JournalDao.get(tokens(1))
+        
           if(tokens(1) == "Name of Journal" || !(journalExists.isEmpty)) {
             break 
           }
 
-          var newJournal = new Journal(tokens(0).toInt, tokens(1), tokens(2).toInt, tokens(3))
+          var stream = Files.newDirectoryStream(Paths.get("./" + tokens(1)))
+          var listStream = stream.iterator().asScala.toList
+          var numOfPages = listStream.length.toInt
+
+          var newJournal = new Journal(tokens(0).toInt, tokens(1), numOfPages, tokens(2))
 
           JournalDao.saveNew(newJournal)
 
@@ -497,7 +513,7 @@ object MyJournal extends App {
         return
       } case e : NumberFormatException => {
         println("Conversion Error, a value in the excel file was a string when it should have been an integer")
-        
+        return
       } case e : Exception => {
         println("Unable to add a journal to the database")
         return
