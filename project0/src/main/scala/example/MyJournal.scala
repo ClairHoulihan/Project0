@@ -37,6 +37,8 @@ object MyJournal extends App {
 
   var userInput = scala.io.StdIn.readLine()
 
+  println(userInput)
+
   while(userInput.toUpperCase != "Z") {
 
     if(userInput.toUpperCase == "C") {
@@ -120,6 +122,13 @@ object MyJournal extends App {
 
     if(!Files.exists(Paths.get("./" + nameOfJournal))) {
       println(s"The journal ${nameOfJournal} does not exist.")
+      return
+    }
+
+    var existingJournals = JournalDao.get(nameOfJournal)
+
+    if(existingJournals.isEmpty) {
+      println("Could not find the journal in the sql server (is this a journal?)")
       return
     }
 
